@@ -1,16 +1,6 @@
-[![Build Status](https://travis-ci.com/instafluff/ChatterboxTranslatorBot.svg?branch=master)](https://travis-ci.com/instafluff/ChatterboxTranslatorBot)
-
-# ChatterboxTranslatorBot
-We built this ChatterboxTranslator bot ([Official Channel](https://www.twitch.tv/chattranslator)). A chat bot for realtime translations in Twitch chat!
 
 The bot detects and translates chat messages of other languages into the target language set by the streamer in real-time.
 
-## Instafluff ##
-> *Come and hang out with us at the Comfiest Corner on Twitch!*
->
-> https://twitch.tv/instafluff
->
-> https://twitter.com/instafluffTV
 
 ## Commands ##
 (Commands are only permitted to the Streamer and Moderators)

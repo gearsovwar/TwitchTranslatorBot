@@ -57,7 +57,9 @@ add( [ "join" ],
             lang: lang,
             color: false,
             uncensored: false,
-            langshow: false
+            langshow: false,
+            pause: false
+            
           };
           store.put( "channels", channels );
           client.say( userChannel, "/me Hello! I am ready to translate" );
@@ -68,7 +70,7 @@ add( [ "join" ],
           console.log( `Something went wrong when trying to join ${ username }'s channel: `, err );
         } );
     } else {
-      client.say( channelName, "/me Already there" )
+      client.say( channelName, "/me On my way :)" )
     }
   },
   {
@@ -84,7 +86,7 @@ add( [ "lang", "language" ],
     if( languages.isSupported( targetLanguage ) ) {
       channelConfig.lang = languages.getCode( targetLanguage );
       store.put( "channels", channels );
-      client.say( channelName, "/me Language was set to " + languages[ channelConfig.lang ] );
+      client.say( channelName, "/me I will now translate everything to " + languages[ channelConfig.lang ] );
     }
   },
   {
@@ -97,7 +99,7 @@ add( [ "lang", "language" ],
 add( [ "languagelist", "langlist" ],
   ( { client }, channelName ) => {
     const supportedlanguages = Object.keys( languages ).filter( lang => lang != "auto" && lang != "isSupported" && lang != "getCode" ).join( ", " );
-    client.say( channelName, "My supported languages are: " + supportedlanguages );
+    client.say( channelName, "These are the languages i can translate: " + supportedlanguages );
   },
   {
     modOnly: true,
@@ -112,8 +114,8 @@ add( [ "languagecensor", "langcensor" ],
     store.put( "channels", channels );
     client.say( channelName,
       channelConfig.uncensored
-        ? "ChatTranslator will now allow NAUGHTY words."
-        : "ChatTranslator will now only allow NICE words."
+        ? "Bad-Words are now allowed."
+        : "Bad-Words are no longer allowed."
     );
   },
   {
@@ -128,7 +130,7 @@ add( [ "languagestop", "langstop", "languageleave", "langleave" ],
     delete channelConfig;
     delete channels[ channelName ];
     store.put( "channels", channels );
-    client.say( channelName, "Goodbye!!!" );
+    client.say( channelName, "Well since you dont want me here ill leave!!!" );
     client.part( channelName );
   },
   {
@@ -192,8 +194,8 @@ add( [ "languageshow", "langshow" ],
     store.put( "channels", channels );
     client.say( channelName,
       channelConfig.langshow
-        ? "ChatTranslator will now show the language name."
-        : "ChatTranslator will now only show the translated message."
+        ? "I will now show the language name."
+        : "I will now only show the translated message."
     );
   },
   {
@@ -212,13 +214,13 @@ add( [ "languageignore", "langignore" ],
     if( channelConfig.ignore[ username ] ) {
       delete channelConfig.ignore[ username ];
       client.say( channelName,
-        "ChatTranslator will no longer ignore " + username
+        "I will no longer ignore " + username
       );
     }
     else {
       channelConfig.ignore[ username ] = true;
       client.say( channelName,
-        "ChatTranslator will now ignore " + username
+        "I will now ignore " + username
       );
     }
     store.put( "channels", channels );
@@ -232,14 +234,46 @@ add( [ "languageignore", "langignore" ],
 )
 add( [ "languageinfo", "langinfo", "languageabout", "langabout" ],
   ( { client }, channelName ) => {
-    client.say( channelName, "My translations are sponsored thanks to the Microsoft Azure team! Learn more about Azure AI at: https://aka.ms/instafluff-social" );
+    client.say( channelName, "Modified chattranslator originally created by instafluff modiefied by g3ars0fwar " );
   },
   {
-    modOnly: false,
+    modOnly: true,
     description: {
-      en: 'about ChatTranslator'
+      en: 'about myself'
     }
   }
 )
+add ( [ "langpause", "languagepause" ],
+( { channels, store, client }, channelName, channelConfig ) => {
+  channelConfig.pause = !channelConfig.pause;
+  store.put( "channels", channels );
+  const state = !channelConfig.pause ? "Unpaused" : "Paused"
+  client.say( channelName, `Chat was ${ state }` );
+    
+  
+},
+{
+
+modOnly: true,
+description: {
+  en: "Toggle pause on and off in mongoDatabase."
+  }
+
+ }
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 module.exports = { runCommand, commands }

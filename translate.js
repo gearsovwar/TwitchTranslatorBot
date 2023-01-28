@@ -68,6 +68,7 @@ function translateMessage( channel, userstate, message, app ) {
         }
         try {
           const resp = JSON.parse( body );
+          console.log(resp)
           if( resp && resp.lang ) {
             sendTranslationFromResponse( language, filteredMessage, channel, userstate, resp, app, true );
             // Cache translation
@@ -102,17 +103,25 @@ async function translateMessageWithAzure( channel, userstate, message, app ) {
     const language = channels[ channel ].lang;
     const ignore = channels[ channel ].ignore || {};
     // User filtering
-    if( userstate.username && ignore[ userstate.username ] ) return;
+    if( userstate.username && ignore[ userstate.username ] )
+     {
+     console.log("if this dooesnt work im gonna steal nicks dog") 
+      return;
+    
+    }
+    
+
+    
 
     // Check if the language is already the target language
     const result = langDetect( message );
-    if( result.language === language ) return;
+    if( result.language === language ) {;return;}
 
 	// Ignorelist Filtering
-	if( ignorelist.some( w => message.toLowerCase() === w ) ) return;
+	if( ignorelist.some( w => message.toLowerCase() === w ) ) {;return;}
 
     // Blacklist filtering
-    if( hasBlacklistedWord( message ) ) return;
+    if( hasBlacklistedWord( message ) ) {;return;}
 
     // Parsing for emotes
     let filteredMessage = message
@@ -124,14 +133,14 @@ async function translateMessageWithAzure( channel, userstate, message, app ) {
       .replace( whitespaceRegex, ' ' )
       .trim()
 
-    // console.log( filteredMessage );
+     console.log( filteredMessage );
 
     if( !filteredMessage ) return;
 
     // Caching
 	const cachedTranslation = await ComfyDB.Get( filteredMessage, "translations" ) || undefined;
-	if( cachedTranslation && cachedTranslation[ language ] ) {
-		// console.log( "found cache!", cachedTranslation );
+	if( cachedTranslation && cachedTranslation[ language ] ) { 
+		 console.log( "found cache!", cachedTranslation );
 	  return sendTranslationFromResponse( language, filteredMessage, channel, userstate, cachedTranslation, app );
     }
 
@@ -141,6 +150,7 @@ async function translateMessageWithAzure( channel, userstate, message, app ) {
 			method: "POST",
 	        headers: {
 	          'Ocp-Apim-Subscription-Key': process.env.AZURE_KEY,
+            'Ocp-Apim-Subscription-Region': "eastus",
 	          'Content-type': 'application/json',
 	          'X-ClientTraceId': uuidv4().toString()
 	        },
@@ -152,8 +162,8 @@ async function translateMessageWithAzure( channel, userstate, message, app ) {
 		} ).then( r => r.json() );
 		// TODO: batch translations into single calls by time for performance
 
-		// console.log( body );
-      // console.log( body, body[ 0 ].translations );
+		 console.log( body );
+       console.log( body, body[ 0 ].translations );
         translationCalls++;
         if( translationCalls % 50 === 0 ) console.log( "API calls" + translationCalls );
 

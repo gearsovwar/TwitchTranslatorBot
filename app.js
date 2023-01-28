@@ -1,11 +1,10 @@
-require( 'dotenv' ).config();
-
+const dotenv = require('dotenv').config();
 const tmi = require( 'tmi.js' );
 const request = require( 'request' );
 const fetch = require( "node-fetch" );
 const Storage = require( 'node-storage' );
 const ComfyDB = require( "comfydb" );
-
+const lang = "something"
 const { runCommand } = require( './command' );
 const { translateMessage, translateMessageWithAzure, translateMessageComfyTranslations } = require( './translate' );
 
@@ -24,17 +23,20 @@ const serverId = 0;
 const serverCount = 1;
 let serverChannels = Object.keys( channels ).concat( botChannelName ).filter( x => randomSimpleHash( x ) % serverCount === serverId );
 console.log( serverChannels );
-
+console.log("Current directory:", __dirname);
 (async () => {
 	// Check and clean up channels
 	for( let i = 0; i < serverChannels.length; i += 100 ) {
 		let chans = serverChannels.slice( i, i + 100 ).map( x => x.replace( "#", "" ) );
 		let result = await fetch( `https://api.twitch.tv/helix/users?login=${chans.join( "&login=" )}`, {
-			headers: {
-				"Client-ID": process.env.CLIENT_ID,
-				"Authorization": `Bearer ${process.env.API_AUTH}`
-			}
-		} ).then( r => r.json() );
+    headers: {
+        "Client-ID": process.env.ClIENT_ID,
+        "Authorization": process.env.OAUTH
+    }
+}).then(r => {
+    //console.log(r)    Use this console.log to verify return from fetch command to API.twitch.tv
+    return r.json()
+});
 		let existing = result.data.map( x => x.login );
 		let badChans = chans.filter( c => !existing.includes( c ) );
 		console.log( "Cleaning bad channels:", badChans );
@@ -55,7 +57,8 @@ console.log( serverChannels );
 	  channels: [ botChannelName ].concat( Object.keys( channels ) ),
 	  identity: {
 		  username: process.env.TWITCHUSER,
-		  password: process.env.OAUTH
+		  password: process.env.OAUTH_2
+		  
 	  },
 	} );
 	client.on( 'chat', onMessage );
@@ -74,7 +77,8 @@ console.log( serverChannels );
 		}
 	} );
 	client.on( 'reconnect', () => console.log( 'Reconnecting' ) );
-
+	//console.log(client.opts.channels);   //Use These console commands to verify what is being passed from process.env.TWITCHUSER and OAUTH2
+	//console.log(client.opts.identity);
 	client.connect();
 	ComfyDB.Connect();
 
@@ -83,15 +87,25 @@ console.log( serverChannels );
 	const errorPrefix = "\n[onMessage]  "
 
 	async function onMessage( channel, userstate, message, self ) {
-	  if( self ) return;
-	  if( userstate.username === "chattranslator" ) return;
+			//console.log(channels[channel].pause)
+				
+
+
+	  
+			if(self){
+			return;
+			}
+	  if( userstate.username === "twitchtranslatorbot" ) return;
 
 	  try {
 	    if( message.match( prefixRegex ) ) {
 	      runCommand( channel, userstate, message, appInjection )
-	    } else if( channels[ channel ] ) {
+	    } else if( channels[ channel ] &&!channels[channel].pause ) {
 			// translateMessage( channel, userstate, message, appInjection );
+			
 	      await translateMessageWithAzure( channel, userstate, message, appInjection )
+			
+
 		  // translateMessageComfyTranslations( channel, userstate, message, appInjection );
 	    }
 	  } catch( error ) {
