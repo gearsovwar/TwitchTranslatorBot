@@ -1,8 +1,11 @@
 const languages = require( './languages' );
 const defaultLang = "en";
-
 const isMod = ( channelName, userstate ) => userstate.mod || "#" + userstate.username == channelName
 const isHomeChannel = ( channelName, { botChannelName } ) => channelName == botChannelName
+
+
+
+
 
 function runCommand( channel, userstate, message, app ) {
   const { prefixRegex, channels } = app
@@ -252,6 +255,15 @@ add ( [ "langpause", "languagepause" ],
     
   
 },
+
+
+
+
+
+
+
+
+
 {
 
 modOnly: true,
@@ -260,11 +272,7 @@ description: {
   }
 
  }
-)
-
-
-
-
+),
 
 
 

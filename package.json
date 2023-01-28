@@ -27,9 +27,11 @@
     "comfysheets": "^1.0.0",
     "dotenv": "^6.2.0",
     "emoji-regex": "^7.0.1",
+    "generator": "^1.0.1",
     "node-fetch": "^2.6.0",
     "node-storage": "0.0.7",
     "nosql": "^6.1.0",
+    "openai": "^3.1.0",
     "request": "^2.88.2",
     "tmi.js": "^1.5.0",
     "uuid": "^3.4.0"

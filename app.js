@@ -15,6 +15,12 @@ const botChannelName = "#" + process.env.TWITCHUSER;
 const prefix = '!'
 const prefixRegex = new RegExp( '^' + prefix )
 
+const { Configuration, OpenAIApi } = require("openai");
+
+
+
+
+
 function randomSimpleHash( s ) {
 	return s.split( "" ).map( c => c.charCodeAt( 0 ) ).reduce( ( p, c ) => p + c, 0 );
 }
@@ -87,7 +93,8 @@ console.log("Current directory:", __dirname);
 	const errorPrefix = "\n[onMessage]  "
 
 	async function onMessage( channel, userstate, message, self ) {
-			//console.log(channels[channel].pause)
+			//console.log(channels[channel].pause) Used to log MangoDB Pause value
+			
 				
 
 
