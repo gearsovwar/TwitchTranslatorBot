@@ -12,20 +12,19 @@ The bot detects and translates chat messages of other languages into the target 
 * `!langlist` - Prints a list of available languages for Translation
 * `!langcolor` - Toggles the translated text color between normal chat and /me action.
 * `!langcensor` - Toggles naughty word censorship.
-* `!langpause` - Toggles bot translating will stop translating until command is entered again.
+
 ## Instructions ##
 
 1. Install NodeJS - [https://nodejs.org/en/](https://nodejs.org/en/)
 2. Open the directory in a Command Prompt/Terminal
 3. Install Dependencies: `npm install`
 4. Get a Twitch Chat OAuth Password Token - [here](http://twitchapps.com/tmi/)
-5. You will also need a twitch App authentication token not generated from TMI.
-6. Get a microsot Azure translator key (Free accounts are limited to 2 million character translations per month)
-7. Edit the file named `.env` that looks like this:
+5. Get a Yandex key from - [here](https://translate.yandex.com/developers/keys)
+6. Edit the file named `.env` that looks like this:
 ```env
 TWITCHUSER=[YOUR-USERNAME-HERE]
-OAUTH=[YOUR-CLIENT-OAUTH-PASS HERE]
-AZURE_KEY=[AZURE Key Here]
+OAUTH=[YOUR-OAUTH-PASS HERE]
+YANDEX_KEY=[Yandex Key Here]
 ```
 7. Run bot: `npm start` or `npm dev`
 8. Browse to your bot's chat

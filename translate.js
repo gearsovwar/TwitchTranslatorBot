@@ -55,47 +55,13 @@ function translateMessage( channel, userstate, message, app ) {
       if( resp && resp[ language ] )
         return sendTranslationFromResponse( language, filteredMessage, channel, userstate, resp, app )
     }
-
-    // Get Translation from yandex
-    request.get(
-      "https://translate.yandex.net/api/v1.5/tr.json/translate?key=" + process.env.YANDEX_KEY + "&lang=" + language + "&text=" + encodeURI( filteredMessage ),
-      ( err, res, body ) => {
-        translationCalls++;
-        if( translationCalls % 50 === 0 ) console.log( "API calls" + translationCalls );
-        // Error handling
-        if( err ) {
-          return console.log( "Error in translation request", err );
-        }
-        try {
-          const resp = JSON.parse( body );
-          console.log(resp)
-          if( resp && resp.lang ) {
-            sendTranslationFromResponse( language, filteredMessage, channel, userstate, resp, app, true );
-            // Cache translation
-            if( filteredMessage.length < maxMessageLength ) {
-              const translation = translations.get( filteredMessage ) || {};
-              translation[ language ] = resp;
-              translations.put( filteredMessage, translation );
-            }
-            else {
-              if( memTranslations.length >= memLimit ) {
-                memTranslations.splice( 0, 1 );
-              }
-              memTranslations.push( {
-                message: filteredMessage,
-                [ language ]: resp
-              } );
-            }
-          }
-        } catch( e ) {
-          console.log( e );
-        }
-      } );
+ 
   }
   catch( err ) {
 	  return;
   }
 }
+      //Translate with AZURE Translation limited to 2Million characters per month/Free then 2Million/10$USD
 
 async function translateMessageWithAzure( channel, userstate, message, app ) {
   {
@@ -270,38 +236,7 @@ function translateMessageComfyTranslations( channel, userstate, message, app ) {
         return sendTranslationFromResponse( language, filteredMessage, channel, userstate, resp, app )
     }
 
-    // Get Translation from yandex
-    request.get(
-      "https://translate.yandex.net/api/v1.5/tr.json/translate?key=" + process.env.YANDEX_KEY + "&lang=" + language + "&text=" + encodeURI( filteredMessage ),
-      ( err, res, body ) => {
-        translationCalls++;
-        if( translationCalls % 50 === 0 ) console.log( "API calls" + translationCalls );
-        // Error handling
-        if( err ) {
-          return console.log( "Error in translation request", err );
-        }
-        try {
-          const resp = JSON.parse( body );
-          if( resp && resp.lang ) {
-            sendTranslationFromResponse( language, filteredMessage, channel, userstate, resp, app, true );
-            // Cache translation
-            if( filteredMessage.length < maxMessageLength ) {
-				addTranslation( filteredMessage.toLowerCase(), resp.lang, resp.text[ 0 ], language );
-            }
-            else {
-              if( memTranslations.length >= memLimit ) {
-                memTranslations.splice( 0, 1 );
-              }
-              memTranslations.push( {
-                message: filteredMessage,
-                [ language ]: resp
-              } );
-            }
-          }
-        } catch( e ) {
-          console.log( e );
-        }
-      } );
+    
   }
   catch( err ) {
 	  return;
