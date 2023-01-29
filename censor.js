@@ -7,7 +7,7 @@ const naughtyRegexList = naughtylist
 const globalblacklist = fs.readFileSync( "blacklist.txt", "utf8" ).split( "\n" )
   .filter( Boolean )
   .map( word => new RegExp( `\\b${ word }\\b`, "gi" ) );
-const CENSORED = "How dare you (Censored)"
+const CENSORED = "(Censored)"
 
 module.exports = {
   naughtyToNice,

@@ -154,7 +154,7 @@ console.log("Current directory:", __dirname);
 		const response = await openai.createCompletion({
 			model: "text-davinci-003",
 			prompt: message,
-			temperature: .90,
+			temperature: 1.2,
 			max_tokens: 50,
 		});
 		const generatedText = response.data.choices[0].text;
