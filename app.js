@@ -15,11 +15,26 @@ const botChannelName = "#" + process.env.TWITCHUSER;
 const prefix = '!'
 const prefixRegex = new RegExp( '^' + prefix )
 
+//OpenAI implementation test
+
+
 const { Configuration, OpenAIApi } = require("openai");
-
-
-
-
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
+/*
+async function gptquery() {
+	const response = await openai.createCompletion({
+	model: "text-davinci-003",
+	prompt: "why is butters so beautiful",
+	temperature: 1.0,
+	max_tokens: 250,
+	});
+	const generatedText = response.data.choices[0].text;
+	console.log(generatedText);
+ 
+*/
 
 function randomSimpleHash( s ) {
 	return s.split( "" ).map( c => c.charCodeAt( 0 ) ).reduce( ( p, c ) => p + c, 0 );
@@ -109,7 +124,7 @@ console.log("Current directory:", __dirname);
 	      runCommand( channel, userstate, message, appInjection )
 	    } else if( channels[ channel ] &&!channels[channel].pause ) {
 			// translateMessage( channel, userstate, message, appInjection );
-			
+			console.log()
 	      await translateMessageWithAzure( channel, userstate, message, appInjection )
 			
 
@@ -123,5 +138,48 @@ console.log("Current directory:", __dirname);
 	      errorPrefix + "Error:  ", error
 	    );
 	  }
+
+
+
+
+
+
+
+	  
+	  
 	}
-})();
+
+
+	async function queryOpenAI(message) {
+		const response = await openai.createCompletion({
+			model: "text-davinci-003",
+			prompt: message,
+			temperature: .90,
+			max_tokens: 50,
+		});
+		const generatedText = response.data.choices[0].text;
+		return generatedText;
+	}
+	
+	client.on( 'chat', async (channel, userstate, message, self) => {
+		if (self) return;
+		if (prefixRegex.test(message) && channels[ channel ] &&!channels[channel].gpt ) {
+			const command = message.slice(prefix.length).split(" ")[0];
+			if (command === "gpt") {
+				const response = await queryOpenAI(message.slice(prefix.length + command.length + 1));
+				client.say(channel, response);
+			}
+		}
+	});
+
+
+
+	}
+
+
+
+
+
+
+
+)();
