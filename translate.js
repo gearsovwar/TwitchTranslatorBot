@@ -71,7 +71,7 @@ async function translateMessageWithAzure( channel, userstate, message, app ) {
     // User filtering
     if( userstate.username && ignore[ userstate.username ] )
      {
-     console.log("if this dooesnt work im gonna steal nicks dog") 
+     //console.log("if this dooesnt work im gonna steal nicks dog") 
       return;
     
     }

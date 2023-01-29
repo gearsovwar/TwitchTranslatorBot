@@ -17,7 +17,7 @@ const prefixRegex = new RegExp( '^' + prefix )
 
 //OpenAI implementation test
 
-
+const cooldowns = {};
 const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -106,7 +106,7 @@ console.log("Current directory:", __dirname);
 	const appInjection = { client, prefixRegex, botChannelName, store, channels, translations, request }
 
 	const errorPrefix = "\n[onMessage]  "
-
+		//Chat GPT Cooldown test
 	async function onMessage( channel, userstate, message, self ) {
 			//console.log(channels[channel].pause) Used to log MangoDB Pause value
 			
@@ -149,12 +149,12 @@ console.log("Current directory:", __dirname);
 	  
 	}
 
-
+/*
 	async function queryOpenAI(message) {
 		const response = await openai.createCompletion({
 			model: "text-davinci-003",
 			prompt: message,
-			temperature: 1.2,
+			temperature: .70,
 			max_tokens: 50,
 		});
 		const generatedText = response.data.choices[0].text;
@@ -167,19 +167,52 @@ console.log("Current directory:", __dirname);
 			const command = message.slice(prefix.length).split(" ")[0];
 			if (command === "gpt") {
 				const response = await queryOpenAI(message.slice(prefix.length + command.length + 1));
-				client.say(channel, response);
+				client.say(channel, "@" + userstate.username + response);
 			}
 		}
 	});
+*/
 
+
+
+const messageCache = new Map();
+const cooldownTime = 30000; // 30 seconds
+
+async function queryOpenAI(message) {
+  const response = await openai.createCompletion({
+    model: "text-davinci-003",
+    prompt: message,
+    temperature: .70,
+    max_tokens: 50,
+  });
+  const generatedText = response.data.choices[0].text;
+  return generatedText;
+}
+
+client.on('chat', async (channel, userstate, message, self) => {
+  if (self) return;
+  if (prefixRegex.test(message) && channels[channel] && !channels[channel].gpt) {
+    const command = message.slice(prefix.length).split(" ")[0];
+    if (command === "gpt") {
+      const username = userstate.username;
+      const currentTime = new Date().getTime();
+
+      // Check if the user has already sent a message recently
+      if (messageCache.has(username) && (currentTime - messageCache.get(username)) < cooldownTime) {
+        client.say(channel, "@" + username + " Please wait before sending another message.");
+        return;
+      }
+      // Update the cache with the new message and timestamp
+      messageCache.set(username, currentTime);
+
+      const response = await queryOpenAI(message.slice(prefix.length + command.length + 1));
+      client.say(channel, "@" + userstate.username + response);
+    }
+  }
+});
 
 
 	}
-
-
-
-
-
 
 
 )();
