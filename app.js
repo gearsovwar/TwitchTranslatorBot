@@ -15,6 +15,27 @@ const botChannelName = "#" + process.env.TWITCHUSER;
 const prefix = '!'
 const prefixRegex = new RegExp( '^' + prefix )
 
+//OpenAI implementation test
+
+const cooldowns = {};
+const { Configuration, OpenAIApi } = require("openai");
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
+/*
+async function gptquery() {
+	const response = await openai.createCompletion({
+	model: "text-davinci-003",
+	prompt: "why is butters so beautiful",
+	temperature: 1.0,
+	max_tokens: 250,
+	});
+	const generatedText = response.data.choices[0].text;
+	console.log(generatedText);
+ 
+*/
+
 function randomSimpleHash( s ) {
 	return s.split( "" ).map( c => c.charCodeAt( 0 ) ).reduce( ( p, c ) => p + c, 0 );
 }
@@ -85,9 +106,10 @@ console.log("Current directory:", __dirname);
 	const appInjection = { client, prefixRegex, botChannelName, store, channels, translations, request }
 
 	const errorPrefix = "\n[onMessage]  "
-
+		//Chat GPT Cooldown test
 	async function onMessage( channel, userstate, message, self ) {
-			//console.log(channels[channel].pause)
+			//console.log(channels[channel].pause) Used to log MangoDB Pause value
+			
 				
 
 
@@ -102,7 +124,7 @@ console.log("Current directory:", __dirname);
 	      runCommand( channel, userstate, message, appInjection )
 	    } else if( channels[ channel ] &&!channels[channel].pause ) {
 			// translateMessage( channel, userstate, message, appInjection );
-			
+			console.log()
 	      await translateMessageWithAzure( channel, userstate, message, appInjection )
 			
 
@@ -116,10 +138,6 @@ console.log("Current directory:", __dirname);
 	      errorPrefix + "Error:  ", error
 	    );
 	  }
-<<<<<<< master
-	}
-})();
-=======
 
 
 
@@ -131,10 +149,7 @@ console.log("Current directory:", __dirname);
 	  
 	}
 
-/* Old Async function testing new Async function below that allows GPT to @ users in a reply and adds a cooldown.
-
-
-
+/*
 	async function queryOpenAI(message) {
 		const response = await openai.createCompletion({
 			model: "text-davinci-003",
@@ -161,7 +176,7 @@ console.log("Current directory:", __dirname);
 
 
 const messageCache = new Map();
-const cooldownTime = 60000; // 1Min seconds might need to be adjusted.
+const cooldownTime = 30000; // 30 seconds
 
 async function queryOpenAI(message) {
   const response = await openai.createCompletion({
@@ -184,7 +199,7 @@ client.on('chat', async (channel, userstate, message, self) => {
 
       // Check if the user has already sent a message recently
       if (messageCache.has(username) && (currentTime - messageCache.get(username)) < cooldownTime) {
-        client.say(channel, "@" + username + " Cooldown is .");
+        client.say(channel, "@" + username + " Please wait before sending another message.");
         return;
       }
       // Update the cache with the new message and timestamp
@@ -201,4 +216,3 @@ client.on('chat', async (channel, userstate, message, self) => {
 
 
 )();
->>>>>>> local
