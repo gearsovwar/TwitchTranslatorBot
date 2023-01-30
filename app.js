@@ -6,7 +6,7 @@ const Storage = require( 'node-storage' );
 const ComfyDB = require( "comfydb" );
 const lang = "something"
 const { runCommand } = require( './command' );
-const { translateMessage, translateMessageWithAzure, translateMessageComfyTranslations } = require( './translate' );
+const { translateMessageWithAzure } = require( './translate' );
 
 const store = new Storage( "channels.db" );
 const translations = new Storage( "translations.db" );
@@ -196,15 +196,17 @@ client.on('chat', async (channel, userstate, message, self) => {
     if (command === "gpt") {
       const username = userstate.username;
       const currentTime = new Date().getTime();
-
+	  
       // Check if the user has already sent a message recently
       if (messageCache.has(username) && (currentTime - messageCache.get(username)) < cooldownTime) {
         client.say(channel, "@" + username + " Please wait before sending another message.");
         return;
+		
       }
+	  
       // Update the cache with the new message and timestamp
       messageCache.set(username, currentTime);
-
+      //console.log(messageCache.set(username, currentTime)) Logging command to check the MAP entries
       const response = await queryOpenAI(message.slice(prefix.length + command.length + 1));
       client.say(channel, "@" + userstate.username + response);
     }
