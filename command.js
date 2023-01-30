@@ -1,8 +1,8 @@
 const languages = require( './languages' );
 const defaultLang = "en";
-
 const isMod = ( channelName, userstate ) => userstate.mod || "#" + userstate.username == channelName
 const isHomeChannel = ( channelName, { botChannelName } ) => channelName == botChannelName
+
 
 function runCommand( channel, userstate, message, app ) {
   const { prefixRegex, channels } = app
@@ -58,7 +58,8 @@ add( [ "join" ],
             color: false,
             uncensored: false,
             langshow: false,
-            pause: false
+            pause: false,
+            gpt: false
             
           };
           store.put( "channels", channels );
@@ -252,6 +253,7 @@ add ( [ "langpause", "languagepause" ],
     
   
 },
+
 {
 
 modOnly: true,
@@ -260,20 +262,35 @@ description: {
   }
 
  }
-)
+),
 
+add ( [ "gptpause", ],
+( { channels, store, client }, channelName, channelConfig ) => {
+  channelConfig.gpt = !channelConfig.gpt;
+  store.put( "channels", channels );
+  const state = !channelConfig.gpt ? "Unpaused" : "Paused"
+  client.say( channelName, `GPT is ${ state }` );
 
+  },
 
+{
 
-
-
-
-
-
-
-
-
+  modOnly: true,
+  description: {
+    en: "Toggle pause on and off in mongoDatabase."
+    }
+  
+   }
+  ),
 
 
 
 module.exports = { runCommand, commands }
+
+
+
+
+
+
+
+
