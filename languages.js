@@ -114,7 +114,7 @@ var langs = {
     'zu': 'Zulu'
 };
 /**
- * Returns the ISO 639-1 code of the desiredLang – if it is supported by Google Translate
+ * Returns the ISO 639-1 code of the desiredLang – if it is supported by Google Translate 
  * @param {string} desiredLang – the name or the code of the desired language
  * @returns {string|boolean} The ISO 639-1 code of the language or false if the language is not supported
  */

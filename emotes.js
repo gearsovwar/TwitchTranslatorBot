@@ -7,7 +7,7 @@ module.exports = {
 const whitespaceRegex = module.exports.whitespaceRegex = /\s+/g
 const doubleColonRegex = /:(\w|-|\+)+:/g
 
-// regex creation
+// regex creation 
 const emoteRegexMap = new Map()
 const regexChar = /\[|\\|\^|\$|\.|\||\?|\*|\+|\(|\)/g
 const escapeChar = char => '\\' + char
