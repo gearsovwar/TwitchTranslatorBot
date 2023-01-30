@@ -116,5 +116,89 @@ console.log("Current directory:", __dirname);
 	      errorPrefix + "Error:  ", error
 	    );
 	  }
+<<<<<<< master
 	}
 })();
+=======
+
+
+
+
+
+
+
+	  
+	  
+	}
+
+/* Old Async function testing new Async function below that allows GPT to @ users in a reply and adds a cooldown.
+
+
+
+	async function queryOpenAI(message) {
+		const response = await openai.createCompletion({
+			model: "text-davinci-003",
+			prompt: message,
+			temperature: .70,
+			max_tokens: 50,
+		});
+		const generatedText = response.data.choices[0].text;
+		return generatedText;
+	}
+	
+	client.on( 'chat', async (channel, userstate, message, self) => {
+		if (self) return;
+		if (prefixRegex.test(message) && channels[ channel ] &&!channels[channel].gpt ) {
+			const command = message.slice(prefix.length).split(" ")[0];
+			if (command === "gpt") {
+				const response = await queryOpenAI(message.slice(prefix.length + command.length + 1));
+				client.say(channel, "@" + userstate.username + response);
+			}
+		}
+	});
+*/
+
+
+
+const messageCache = new Map();
+const cooldownTime = 60000; // 1Min seconds might need to be adjusted.
+
+async function queryOpenAI(message) {
+  const response = await openai.createCompletion({
+    model: "text-davinci-003",
+    prompt: message,
+    temperature: .70,
+    max_tokens: 50,
+  });
+  const generatedText = response.data.choices[0].text;
+  return generatedText;
+}
+
+client.on('chat', async (channel, userstate, message, self) => {
+  if (self) return;
+  if (prefixRegex.test(message) && channels[channel] && !channels[channel].gpt) {
+    const command = message.slice(prefix.length).split(" ")[0];
+    if (command === "gpt") {
+      const username = userstate.username;
+      const currentTime = new Date().getTime();
+
+      // Check if the user has already sent a message recently
+      if (messageCache.has(username) && (currentTime - messageCache.get(username)) < cooldownTime) {
+        client.say(channel, "@" + username + " Cooldown is .");
+        return;
+      }
+      // Update the cache with the new message and timestamp
+      messageCache.set(username, currentTime);
+
+      const response = await queryOpenAI(message.slice(prefix.length + command.length + 1));
+      client.say(channel, "@" + userstate.username + response);
+    }
+  }
+});
+
+
+	}
+
+
+)();
+>>>>>>> local
