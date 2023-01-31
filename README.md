@@ -12,7 +12,7 @@ The bot detects and translates chat messages of other languages into the target 
 * `!gptlist`    - Prints a list of available languages for Translation
 * `!gptcolor`   - Toggles the translated text color between normal chat and /me action.
 * `!gptcensor`  - Toggles naughty word censorship.
-* `!gptpause`   - Pauses translation until command is entered again.
+* `!langpause`   - Pauses translation until command is entered again.
 * `!gpt`         - Will query OPENAI with whatever you enter afterwards.
 * `!gptpause`    - Will pause GPT querying to avoid abuse.
 
