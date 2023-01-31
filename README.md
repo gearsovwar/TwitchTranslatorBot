@@ -6,13 +6,13 @@ The bot detects and translates chat messages of other languages into the target 
 (Commands are only permitted to the Streamer and Moderators)
 
 * `!join [lang]` - Used only from twitch.tv/ChatTranslator by the streamer to have the bot join the channel
-* `!langhelp`    - Prints out available commands for this Bot
-* `!lang [code]` - Sets the target language for the channel using a language code (e.g. en for English)
-* `!langleave`   - Makes the Bot leave the channel
-* `!langlist`    - Prints a list of available languages for Translation
-* `!langcolor`   - Toggles the translated text color between normal chat and /me action.
-* `!langcensor`  - Toggles naughty word censorship.
-* `!langpause`   - Pauses translation until command is entered again.
+* `!gpthelp`    - Prints out available commands for this Bot
+* `!gpt [code]` - Sets the target language for the channel using a language code (e.g. en for English)
+* `!gptleave`   - Makes the Bot leave the channel
+* `!gptlist`    - Prints a list of available languages for Translation
+* `!gptcolor`   - Toggles the translated text color between normal chat and /me action.
+* `!gptcensor`  - Toggles naughty word censorship.
+* `!gptpause`   - Pauses translation until command is entered again.
 * `!gpt`         - Will query OPENAI with whatever you enter afterwards.
 * `!gptpause`    - Will pause GPT querying to avoid abuse.
 
@@ -43,3 +43,6 @@ AZURE_KEY=azurekey
 "Common Issues"
 1.) Cannot connect to MangoDB instance - You may need to change the index.js in conmfydb module from Localhost to 127.0.0.1.
 2.) Issue with reading map. -Verify that you have correctly entered in all .env variables You may have to enable logging commands to see what the API is returning.
+
+
+Huge thanks to Instafluff for his GIT https://github.com/instafluff/ChatterboxTranslatorBot

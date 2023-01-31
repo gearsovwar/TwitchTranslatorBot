@@ -81,7 +81,7 @@ add( [ "join" ],
     }
   }
 )
-add( [ "lang", "language" ],
+add( [ "gptlang", ],
   ( { channels, store, client }, channelName, channelConfig, userstate, message ) => {
     const [ , targetLanguage = defaultLang ] = message.split( /\s+/ );
     if( languages.isSupported( targetLanguage ) ) {
@@ -97,7 +97,7 @@ add( [ "lang", "language" ],
     }
   }
 )
-add( [ "languagelist", "langlist" ],
+add( [ "gptlist", ],
   ( { client }, channelName ) => {
     const supportedlanguages = Object.keys( languages ).filter( lang => lang != "auto" && lang != "isSupported" && lang != "getCode" ).join( ", " );
     client.say( channelName, "These are the languages i can translate: " + supportedlanguages );
@@ -109,7 +109,7 @@ add( [ "languagelist", "langlist" ],
     }
   }
 )
-add( [ "languagecensor", "langcensor" ],
+add( [ "gptcensor", ],
   ( { channels, store, client }, channelName, channelConfig ) => {
     channelConfig.uncensored = !channelConfig.uncensored;
     store.put( "channels", channels );
@@ -126,7 +126,7 @@ add( [ "languagecensor", "langcensor" ],
     }
   }
 )
-add( [ "languagestop", "langstop", "languageleave", "langleave" ],
+add( [ "gptleave" ],
   ( { channels, store, client }, channelName, channelConfig ) => {
     delete channelConfig;
     delete channels[ channelName ];
@@ -141,7 +141,7 @@ add( [ "languagestop", "langstop", "languageleave", "langleave" ],
     }
   }
 )
-add( [ "languagecolor", "langcolor", "languagecolour", "langcolour" ],
+add( [ "gptcolor" ],
   ( { channels, store, client }, channelName, channelConfig ) => {
     channelConfig.color = !channelConfig.color;
     store.put( "channels", channels );
@@ -155,7 +155,7 @@ add( [ "languagecolor", "langcolor", "languagecolour", "langcolour" ],
     }
   }
 )
-add( [ "languagehelp", "langhelp" ],
+add( [ "gpthelp" ],
   ( app, channelName, __, userstate, message ) => {
     const [ , command ] = message.split( /\s+/ )
 
@@ -189,7 +189,7 @@ add( [ "languagehelp", "langhelp" ],
     }
   }
 )
-add( [ "languageshow", "langshow" ],
+add( [ "gptshow" ],
   ( { channels, store, client }, channelName, channelConfig ) => {
     channelConfig.langshow = !channelConfig.langshow;
     store.put( "channels", channels );
@@ -206,7 +206,7 @@ add( [ "languageshow", "langshow" ],
     }
   }
 )
-add( [ "languageignore", "langignore" ],
+add( [ "gptignore" ],
   ( { channels, store, client }, channelName, channelConfig, userstate, message ) => {
     var [ , username ] = message.split( /\s+/ );
     if( !username ) return;
@@ -233,9 +233,9 @@ add( [ "languageignore", "langignore" ],
     }
   }
 )
-add( [ "languageinfo", "langinfo", "languageabout", "langabout" ],
+add( [ "gptinfo" ],
   ( { client }, channelName ) => {
-    client.say( channelName, "Modified chattranslator originally created by instafluff modiefied by g3ars0fwar " );
+    client.say( channelName, "Modified chattranslator originally created by isntafluff modiefied by g3ars0fwar " );
   },
   {
     modOnly: true,
@@ -244,7 +244,7 @@ add( [ "languageinfo", "langinfo", "languageabout", "langabout" ],
     }
   }
 )
-add ( [ "langpause", "languagepause" ],
+add ( [ "langpause" ],
 ( { channels, store, client }, channelName, channelConfig ) => {
   channelConfig.pause = !channelConfig.pause;
   store.put( "channels", channels );
