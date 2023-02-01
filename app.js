@@ -129,14 +129,16 @@ console.log("Current directory:", __dirname);
 	  
 	}
 
+
 const messageCache = new Map();
-const cooldownTime = 30000; // 30 seconds
+const cooldownTime = 150000; // 3 minutes
+
 
 async function queryOpenAI(message) {
   const response = await openai.createCompletion({
     model: "text-davinci-003",
     prompt: message,
-    temperature: .70,
+    temperature:0.3,
     max_tokens: 50,
   });
   const generatedText = response.data.choices[0].text;
@@ -150,10 +152,16 @@ client.on('chat', async (channel, userstate, message, self) => {
     if (command === "gpt") {
       const username = userstate.username;
       const currentTime = new Date().getTime();
+	  const elapsedTime = (currentTime - messageCache.get(username));
+	  const TimeUntilCooldown = (cooldownTime - elapsedTime) / 1000;
+	  const minutes = Math.floor(TimeUntilCooldown / 60);
+	  const seconds = Math.floor(TimeUntilCooldown % 60);
+	  const timeString = minutes + " minutes and " + seconds + " seconds";
+	  
 	  
       // Check if the user has already sent a message recently
       if (messageCache.has(username) && (currentTime - messageCache.get(username)) < cooldownTime) {
-        client.say(channel, "@" + username + " Please wait before sending another message.");
+        client.say(channel, "@" + username + " You are currently on cooldown " + timeString );
         return;
 		
       }
@@ -172,3 +180,6 @@ client.on('chat', async (channel, userstate, message, self) => {
 
 
 )();
+
+
+
