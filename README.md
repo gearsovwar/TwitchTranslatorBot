@@ -15,7 +15,7 @@ The bot detects and translates chat messages of other languages into the target 
 * `!langpause`   - Pauses translation until command is entered again.
 * `!gpt`         - Will query OPENAI with whatever you enter afterwards.
 * `!gptpause`    - Will pause GPT querying to avoid abuse.
-
+* `!gptcooldown` - Sets the cooldown of users gpt commands 
 ## Instructions ##
 
 1. Install NodeJS - [https://nodejs.org/en/](https://nodejs.org/en/)

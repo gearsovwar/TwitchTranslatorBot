@@ -131,37 +131,45 @@ console.log("Current directory:", __dirname);
 
 
 const messageCache = new Map();
-const cooldownTime = 150000; // 3 minutes
+ // 3 minutes
 
 
 async function queryOpenAI(message) {
   const response = await openai.createCompletion({
     model: "text-davinci-003",
     prompt: message,
-    temperature:0.3,
+    temperature:0.7,
     max_tokens: 50,
   });
   const generatedText = response.data.choices[0].text;
   return generatedText;
 }
-
+ 
 client.on('chat', async (channel, userstate, message, self) => {
+	
+
   if (self) return;
   if (prefixRegex.test(message) && channels[channel] && !channels[channel].gpt) {
-    const command = message.slice(prefix.length).split(" ")[0];
+
+	console.log(channels[channel].cooldown)
+	 const command = message.slice(prefix.length).split(" ")[0];
+	 const cooldownTime = channels[channel].cooldown
     if (command === "gpt") {
       const username = userstate.username;
       const currentTime = new Date().getTime();
 	  const elapsedTime = (currentTime - messageCache.get(username));
+	  console.log(elapsedTime)
 	  const TimeUntilCooldown = (cooldownTime - elapsedTime) / 1000;
 	  const minutes = Math.floor(TimeUntilCooldown / 60);
+	  console.log(minutes)
 	  const seconds = Math.floor(TimeUntilCooldown % 60);
+	  console.log(seconds)
 	  const timeString = minutes + " minutes and " + seconds + " seconds";
 	  
 	  
       // Check if the user has already sent a message recently
       if (messageCache.has(username) && (currentTime - messageCache.get(username)) < cooldownTime) {
-        client.say(channel, "@" + username + " You are currently on cooldown " + timeString );
+        client.say(channel, "@" + username + "  cooldown " + timeString );
         return;
 		
       }

@@ -7,7 +7,7 @@ const isHomeChannel = ( channelName, { botChannelName } ) => channelName == botC
 function runCommand( channel, userstate, message, app ) {
   const { prefixRegex, channels } = app
   const command = message.split( /\s/ )[ 0 ].replace( prefixRegex, '' ).toLowerCase()
-
+//console.log(message) to see user messages
   if( commands.hasOwnProperty( command ) ) {
     const commandRunner = commands[ command ]
     if( !authenticate( commandRunner, channel, userstate, app ) ) return
@@ -59,7 +59,8 @@ add( [ "join" ],
             uncensored: false,
             langshow: false,
             pause: false,
-            gpt: false
+            gpt: false,
+            cooldown: 0
             
           };
           store.put( "channels", channels );
@@ -82,7 +83,7 @@ add( [ "join" ],
   }
 )
 add( [ "gptlang", ],
-  ( { channels, store, client }, channelName, channelConfig, userstate, message ) => {
+  ( { channels, store, client }, channelName, channelConfig, message ) => {
     const [ , targetLanguage = defaultLang ] = message.split( /\s+/ );
     if( languages.isSupported( targetLanguage ) ) {
       channelConfig.lang = languages.getCode( targetLanguage );
@@ -131,7 +132,7 @@ add( [ "gptleave" ],
     delete channelConfig;
     delete channels[ channelName ];
     store.put( "channels", channels );
-    client.say( channelName, "Well since you dont want me here ill leave!!!" );
+    client.say( channelName, "Well since you dont want me here ill leave" );
     client.part( channelName );
   },
   {
@@ -208,6 +209,7 @@ add( [ "gptshow" ],
 )
 add( [ "gptignore" ],
   ( { channels, store, client }, channelName, channelConfig, userstate, message ) => {
+    console.log(message)
     var [ , username ] = message.split( /\s+/ );
     if( !username ) return;
     username = username.toLowerCase();
@@ -277,17 +279,33 @@ add ( [ "gptpause", ],
 
   modOnly: true,
   description: {
-    en: "Toggle pause on and off in mongoDatabase."
+    en: "Toggle  GPT pause on and off in mongoDatabase."
     }
   
    }
   ),
 
-
+  add( [ "gptcooldown" ],
+  ( { channels, store, client }, channelName, channelConfig, userstate, message ) => {
+    const newNumber = parseInt(message.split(' ')[1] * 1000)
+    console.log(newNumber)
+    channelConfig.cooldown = newNumber;
+    store.put( "channels", channels ); 
+    client.say( channelName, 'GPT cooldown set to ' + newNumber/1000 /60 + ' minutes'  ) ;
+    
+    },
+  
+  {
+  
+    modOnly: true,
+    description: {
+      en: "Toggle pause on and off in mongoDatabase."
+      }
+    
+     }
+    ),
 
 module.exports = { runCommand, commands }
-
-
 
 
 
