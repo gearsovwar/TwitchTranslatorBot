@@ -23,7 +23,7 @@ const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
-
+console.log(openai)
 function randomSimpleHash( s ) {
 	return s.split( "" ).map( c => c.charCodeAt( 0 ) ).reduce( ( p, c ) => p + c, 0 );
 }
@@ -112,8 +112,13 @@ console.log("Current directory:", __dirname);
 	      runCommand( channel, userstate, message, appInjection )
 	    } else if( channels[ channel ] &&!channels[channel].pause ) {
 			// translateMessage( channel, userstate, message, appInjection );
-			console.log()
-	      await translateMessageWithAzure( channel, userstate, message, appInjection )
+
+			if(message.length === 1 || /[^a-zA-Z0-9\s\?]/.test(message)) return;
+
+				await translateMessageWithAzure( channel, userstate, message, appInjection );
+
+			//console.log()
+	      
 			
 
 		  // translateMessageComfyTranslations( channel, userstate, message, appInjection );
@@ -134,24 +139,15 @@ const messageCache = new Map();
  // 3 minutes
 
 
-async function queryOpenAI(message) {
-  const response = await openai.createCompletion({
-    model: "text-davinci-003",
-    prompt: message,
-    temperature:0.7,
-    max_tokens: 50,
-  });
-  const generatedText = response.data.choices[0].text;
-  return generatedText;
-}
+
  
-client.on('chat', async (channel, userstate, message, self) => {
+client.on('chat', async (channel, userstate, message, self,) => {
 	
 
   if (self) return;
   if (prefixRegex.test(message) && channels[channel] && !channels[channel].gpt) {
 
-	console.log(channels[channel].cooldown)
+	//console.log(channels[channel].cooldown) Console command to check cooldown value
 	 const command = message.slice(prefix.length).split(" ")[0];
 	 const cooldownTime = channels[channel].cooldown
     if (command === "gpt") {
@@ -165,7 +161,7 @@ client.on('chat', async (channel, userstate, message, self) => {
 	  const seconds = Math.floor(TimeUntilCooldown % 60);
 	  console.log(seconds)
 	  const timeString = minutes + " minutes and " + seconds + " seconds";
-	  
+	  console.log(channel,userstate.username,message)
 	  
       // Check if the user has already sent a message recently
       if (messageCache.has(username) && (currentTime - messageCache.get(username)) < cooldownTime) {
@@ -176,9 +172,34 @@ client.on('chat', async (channel, userstate, message, self) => {
 	  
       // Update the cache with the new message and timestamp
       messageCache.set(username, currentTime);
+	  async function queryOpenAI(message) {
+		try {
+	  const response = await openai.createCompletion({
+		model: "text-davinci-003",
+		prompt: message,
+		temperature:1.1,
+		max_tokens: 50,
+	  });
+	  const generatedText = response.data.choices[0].text;
+	  return generatedText;
+	} catch (error) {
+		console.error(error);
+		client.say(channel, '@' + userstate.username + "GPT is down please try again")
+		
+	
+	}}
+	 try {
       //console.log(messageCache.set(username, currentTime)) Logging command to check the MAP entries
       const response = await queryOpenAI(message.slice(prefix.length + command.length + 1));
       client.say(channel, "@" + userstate.username + response);
+	  console.log(response)
+	  } catch (error){
+		console.error(error);
+		client.say(channel, '@' + userstate.username + "If you are seeing this catch 2 prevented a crash")
+
+
+	  }
+
     }
   }
 });

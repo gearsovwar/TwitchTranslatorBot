@@ -197,6 +197,11 @@ function translateMessageComfyTranslations( channel, userstate, message, app ) {
     // User filtering
     if( userstate.username && ignore[ userstate.username ] ) return;
 
+    // Test check for special characters
+
+    //if(/[^a-zA-Z0-9\s]/.test(message)) return;
+    
+
     // Check if the language is already the target language
     const result = langDetect( message );
     if( result.language === language ) return;
