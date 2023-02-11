@@ -113,7 +113,7 @@ console.log("Current directory:", __dirname);
 	    } else if( channels[ channel ] &&!channels[channel].pause ) {
 			// translateMessage( channel, userstate, message, appInjection );
 
-			if(message.length === 1 || /[^a-zA-Z0-9\s\?]/.test(message)) return;
+			if(message.length === 1 || /[^a-zA-Z0-9\s\?\u00E0-\u00FF]/.test(message)) return;
 
 				await translateMessageWithAzure( channel, userstate, message, appInjection );
 
