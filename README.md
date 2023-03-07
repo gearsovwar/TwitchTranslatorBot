@@ -7,7 +7,7 @@ The bot detects and translates chat messages of other languages into the target 
 
 * `!join [lang]` - Used only from twitch.tv/ChatTranslator by the streamer to have the bot join the channel
 * `!gpthelp`    - Prints out available commands for this Bot
-* `!gpt [code]` - Sets the target language for the channel using a language code (e.g. en for English)
+* `!gptlang [code]` - Sets the target language for the channel using a language code (e.g. en for English)
 * `!gptleave`   - Makes the Bot leave the channel
 * `!gptlist`    - Prints a list of available languages for Translation
 * `!gptcolor`   - Toggles the translated text color between normal chat and /me action.

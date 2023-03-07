@@ -7,7 +7,7 @@ const isHomeChannel = ( channelName, { botChannelName } ) => channelName == botC
 function runCommand( channel, userstate, message, app ) {
   const { prefixRegex, channels } = app
   const command = message.split( /\s/ )[ 0 ].replace( prefixRegex, '' ).toLowerCase()
-//console.log(message) to see user messages
+
   if( commands.hasOwnProperty( command ) ) {
     const commandRunner = commands[ command ]
     if( !authenticate( commandRunner, channel, userstate, app ) ) return
@@ -61,7 +61,6 @@ add( [ "join" ],
             pause: false,
             gpt: false,
             cooldown: 0
-            
           };
           store.put( "channels", channels );
           client.say( userChannel, "/me Hello! I am ready to translate" );
@@ -83,7 +82,7 @@ add( [ "join" ],
   }
 )
 add( [ "gptlang", ],
-  ( { channels, store, client }, channelName, channelConfig, message ) => {
+  ( { channels, store, client }, channelName, channelConfig, userstate, message ) => {
     const [ , targetLanguage = defaultLang ] = message.split( /\s+/ );
     if( languages.isSupported( targetLanguage ) ) {
       channelConfig.lang = languages.getCode( targetLanguage );
@@ -132,7 +131,7 @@ add( [ "gptleave" ],
     delete channelConfig;
     delete channels[ channelName ];
     store.put( "channels", channels );
-    client.say( channelName, "Well since you dont want me here ill leave" );
+    client.say( channelName, "Well since you dont want me here ill leave!!!" );
     client.part( channelName );
   },
   {
@@ -209,7 +208,6 @@ add( [ "gptshow" ],
 )
 add( [ "gptignore" ],
   ( { channels, store, client }, channelName, channelConfig, userstate, message ) => {
-    console.log(message)
     var [ , username ] = message.split( /\s+/ );
     if( !username ) return;
     username = username.toLowerCase();
@@ -279,7 +277,7 @@ add ( [ "gptpause", ],
 
   modOnly: true,
   description: {
-    en: "Toggle  GPT pause on and off in mongoDatabase."
+    en: "Toggle pause on and off in mongoDatabase."
     }
   
    }
@@ -305,7 +303,10 @@ add ( [ "gptpause", ],
      }
     ),
 
+
 module.exports = { runCommand, commands }
+
+
 
 
 

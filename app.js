@@ -111,9 +111,6 @@ console.log("Current directory:", __dirname);
 	    if( message.match( prefixRegex ) ) {
 	      runCommand( channel, userstate, message, appInjection )
 	    } else if( channels[ channel ] &&!channels[channel].pause ) {
-			// translateMessage( channel, userstate, message, appInjection );
-
-			if(message.length === 1 || /[^a-zA-Z0-9\s\?\u00E0-\u00FF]/.test(message)) return;
 
 				await translateMessageWithAzure( channel, userstate, message, appInjection );
 
@@ -174,10 +171,17 @@ client.on('chat', async (channel, userstate, message, self,) => {
       messageCache.set(username, currentTime);
 	  async function queryOpenAI(message) {
 		try {
+
+			if (message.length < 10) {
+				client.say(channel, '@' + userstate.username + " Your message is too short. Please enter a message with at least " + 10 + " characters.");
+				return;
+			  }
+			
+			
 	  const response = await openai.createCompletion({
 		model: "text-davinci-003",
 		prompt: message,
-		temperature:1.1,
+		temperature:1.5,
 		max_tokens: 50,
 	  });
 	  const generatedText = response.data.choices[0].text;
@@ -189,13 +193,16 @@ client.on('chat', async (channel, userstate, message, self,) => {
 	
 	}}
 	 try {
+	
       //console.log(messageCache.set(username, currentTime)) Logging command to check the MAP entries
       const response = await queryOpenAI(message.slice(prefix.length + command.length + 1));
-      client.say(channel, "@" + userstate.username + response);
-	  console.log(response)
+
+      if (message.length > 14) {client.say(channel, "@" + userstate.username + response);}
+		console.log(message.length)
+	  //console.log(response)
 	  } catch (error){
 		console.error(error);
-		client.say(channel, '@' + userstate.username + "If you are seeing this catch 2 prevented a crash")
+		client.say(channel, '@' + userstate.username + "Failed to respond please try again later")
 
 
 	  }
