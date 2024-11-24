@@ -1,278 +1,201 @@
 const uuidv4 = require('uuid/v4');
-const fetch = require( "node-fetch" );
-const ComfyDB = require( "comfydb" );
-const fs = require( "fs" );
-const ignorelist = fs.readFileSync( "ignore-words.txt", "utf-8" ).split( ", " ).filter( Boolean );
-const { naughtyToNice, hasBlacklistedWord } = require( './censor' );
-const { parseEmotes, whitespaceRegex } = require( './emotes' );
-const languages = require( './languages' );
+const fetch = require("node-fetch");
+const ComfyDB = require("comfydb");
+const fs = require("fs");
+const ignorelist = fs.readFileSync("ignore-words.txt", "utf-8").split(", ").filter(Boolean);
+const { naughtyToNice, hasBlacklistedWord } = require('./censor');
+const { parseEmotes, whitespaceRegex } = require('./emotes');
+const languages = require('./languages');
 const langDetect = require("@chattylabs/language-detection");
+const moment = require('moment'); // Use moment to handle timestamps
 const maxMessageLength = 64;
 const memTranslations = [];
 const memLimit = 1000;
-const twitchUsernameRegex = /@[a-zA-Z0-9_]{4,25}\b/gi
+const twitchUsernameRegex = /@[a-zA-Z0-9_]{4,25}\b/gi;
+const { Translate } = require('@google-cloud/translate').v2;
+const google_apikey = process.env.GOOGLE_API;
+const projectID = process.env.ProjectID;
+const translate = new Translate({
+  projectID,
+  key: google_apikey,
+});
 let translationCalls = 0;
 
-function translateMessage( channel, userstate, message, app ) {
+// Cache expiration times in milliseconds
+const MEM_CACHE_EXPIRATION_TIME = 3600000; // 1 hour for in-memory cache
+const COMFYDB_CACHE_EXPIRATION_TIME = 86400000; // 1 day for ComfyDB cache
+
+async function clearExpiredCache() {
   try {
-    const { translations, request, channels } = app
-    const language = channels[ channel ].lang;
-    const ignore = channels[ channel ].ignore || {};
-    // User filtering
-    if( userstate.username && ignore[ userstate.username ] ) return;
+    console.log('[INFO] Starting cache cleanup...');
 
-    // Check if the language is already the target language
-    const result = langDetect( message );
-    if( result.language === language ) return;
+    // Clear expired cache from ComfyDB (translations)
+    const translations = await ComfyDB.GetAll("translations");
 
-	// Ignorelist Filtering
-	if( ignorelist.some( w => message.toLowerCase() === w ) ) return;
+    translations.forEach(translation => {
+      if (translation.timestamp) {
+        const now = moment();
+        const cacheTime = moment(translation.timestamp);
+        const age = now.diff(cacheTime);
 
-    // Blacklist filtering
-    if( hasBlacklistedWord( message ) ) return;
-
-    // Parsing for emotes
-    let filteredMessage = message
-    if( userstate.emotes ) {
-      filteredMessage = parseEmotes( userstate.emotes, filteredMessage );
-    }
-    filteredMessage = filteredMessage
-      .replace( twitchUsernameRegex, '' )
-      .replace( whitespaceRegex, ' ' )
-      .trim()
-
-    if( !filteredMessage ) return;
-
-    // Caching
-    if( filteredMessage.length < maxMessageLength ) {
-      // Attempt to retrieve from cache
-      const resp = translations.get( filteredMessage ) || undefined;
-      if( resp && resp[ language ] )
-        return sendTranslationFromResponse( language, filteredMessage, channel, userstate, resp, app )
-    } else {
-      // Check memTranslations for long-message caches
-      const resp = memTranslations.find( translation => translation.message == filteredMessage )
-      if( resp && resp[ language ] )
-        return sendTranslationFromResponse( language, filteredMessage, channel, userstate, resp, app )
-    }
- 
-  }
-  catch( err ) {
-	  return;
-  }
-}
-      //Translate with AZURE Translation limited to 2Million characters per month/Free then 2Million/10$USD
-
-async function translateMessageWithAzure( channel, userstate, message, app ) {
-  {
-    const { translations, request, channels } = app
-    const language = channels[ channel ].lang;
-    const ignore = channels[ channel ].ignore || {};
-    // User filtering
-    if( userstate.username && ignore[ userstate.username ] )
-     {
-     console.log("if this doesnt work im gonna steal nicks dog") 
-      return;
-    
-    }
-    
-
-    
-
-    // Check if the language is already the target language
-    const result = langDetect( message );
-    if( result.language === language ) {;return;}
-
-	// Ignorelist Filtering
-	if( ignorelist.some( w => message.toLowerCase() === w ) ) {;return;}
-
-    // Blacklist filtering
-    if( hasBlacklistedWord( message ) ) {;return;}
-
-    // Parsing for emotes
-    let filteredMessage = message
-    if( userstate.emotes ) {
-      filteredMessage = parseEmotes( userstate.emotes, filteredMessage );
-    }
-    filteredMessage = filteredMessage
-      .replace( twitchUsernameRegex, '' )
-      .replace( whitespaceRegex, ' ' )
-      .trim()
-
-     console.log( filteredMessage );
-
-    if( !filteredMessage ) return;
-
-    // Caching
-	const cachedTranslation = await ComfyDB.Get( filteredMessage, "translations" ) || undefined;
-	if( cachedTranslation && cachedTranslation[ language ] ) { 
-		 console.log( "found cache!", cachedTranslation );
-	  return sendTranslationFromResponse( language, filteredMessage, channel, userstate, cachedTranslation, app );
-    }
-
-	try {
-	    // Get Translation from translateMessageWithAzure
-		let body = await fetch( `https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=${ language }`, {
-			method: "POST",
-	        headers: {
-	          'Ocp-Apim-Subscription-Key': process.env.AZURE_KEY,
-            'Ocp-Apim-Subscription-Region': "eastus",
-	          'Content-type': 'application/json',
-	          'X-ClientTraceId': uuidv4().toString()
-	        },
-			body: JSON.stringify([
-				{
-	              'text': filteredMessage
-		        }
-			]),
-		} ).then( r => r.json() );
-		// TODO: batch translations into single calls by time for performance
-
-		 console.log( body );
-       console.log( body, body[ 0 ].translations );
-        translationCalls++;
-        if( translationCalls % 50 === 0 ) console.log( "API calls" + translationCalls );
-
-      if( body && body.length > 0 ) {
-        var resp = {
-          text: [ body[ 0 ].translations[ 0 ].text ],
-          lang: body[ 0 ].detectedLanguage.language
-        };
-        sendTranslationFromResponse( language, filteredMessage, channel, userstate, resp, app, true );
-
-        // Cache translation
-		const translation = await ComfyDB.Get( filteredMessage, "translations" ) || {};
-		translation[ language ] = resp;
-		await ComfyDB.Store( filteredMessage, translation, "translations" );
+        // If cache entry is older than the expiration time, remove it
+        if (age > COMFYDB_CACHE_EXPIRATION_TIME) {
+          console.log(`[INFO] Cache expired for ${translation.key}, removing it.`);
+          ComfyDB.Remove(translation.key, "translations");
+        }
       }
-	}
-	catch( err ) {
-		return console.log( "Error in translation request", err );
-	}
+    });
+
+    // Clear expired cache from memTranslations (in-memory cache)
+    const currentTime = moment().valueOf();
+    for (let i = 0; i < memTranslations.length; i++) {
+      if (memTranslations[i].timestamp && currentTime - memTranslations[i].timestamp > MEM_CACHE_EXPIRATION_TIME) {
+        console.log(`[INFO] Cache expired for message: ${memTranslations[i].message}, removing it.`);
+        memTranslations.splice(i, 1);
+        i--; // Adjust index after removal
+      }
+    }
+
+    console.log('[INFO] Cache cleanup completed.');
+  } catch (err) {
+    console.error('[ERROR] Error during cache cleanup:', err);
   }
 }
 
-const ComfySheets = require( "comfysheets" );
-let comfyTranslations = {};
+// Schedule cache cleanup to run every hour (1 hour for both caches)
+setInterval(clearExpiredCache, MEM_CACHE_EXPIRATION_TIME);
 
-async function loadTranslations() {
-	var translationList = await ComfySheets.Read( process.env.SHEETID, 'Form Responses 1', {
-		"Original": "message",
-		"Original Language": "from",
-		"Translation": "translation",
-		"Translation Language": "to",
-	} );
-	translationList.forEach( t => {
-		const message = t.message.toLowerCase();
-		if( !comfyTranslations[ message ] ) {
-			comfyTranslations[ message ] = {
-				lang: t.from
-			};
-		}
-		comfyTranslations[ message ][ t.to ] = t.translation;
-	});
-	console.log( comfyTranslations );
-}
-async function addTranslation( message, langFrom, translation, langTo ) {
-	if( !comfyTranslations[ message ] ) {
-		comfyTranslations[ message ] = {
-			lang: langFrom.split("-")[ 0 ]
-		};
-	}
-	comfyTranslations[ message ][ langTo ] = translation;
-	let result = await ComfySheets.Submit( process.env.FORMID, {
-		'entry.364437775': message,
-		'entry.1672632710': langFrom.split("-")[ 0 ],
-		'entry.1464209519': translation,
-		'entry.1190780107': langTo,
-	});
-}
-// loadTranslations();
+const allowedLanguages = ["es", "fr", "de"]; // Languages that will be translated, others will be ignored.
 
-function translateMessageComfyTranslations( channel, userstate, message, app ) {
+async function translateMessageWithGoogle(channel, userstate, message, app) {
   try {
-    const { translations, request, channels } = app
-    const language = channels[ channel ].lang;
-    const ignore = channels[ channel ].ignore || {};
-    // User filtering
-    if( userstate.username && ignore[ userstate.username ] ) return;
+    const { translations, request, channels } = app;
 
-    // Test check for special characters
-
-    //if(/[^a-zA-Z0-9\s]/.test(message)) return;
-    
-
-    // Check if the language is already the target language
-    const result = langDetect( message );
-    if( result.language === language ) return;
-
-    // Blacklist filtering
-    if( hasBlacklistedWord( message ) ) return;
-
-    // Parsing for emotes
-    let filteredMessage = message
-    if( userstate.emotes ) {
-      filteredMessage = parseEmotes( userstate.emotes, filteredMessage );
-    }
-    filteredMessage = filteredMessage
-      .replace( twitchUsernameRegex, '' )
-      .replace( whitespaceRegex, ' ' )
-      .trim()
-
-    if( !filteredMessage ) return;
-
-    // Caching
-    if( filteredMessage.length < maxMessageLength ) {
-      // Attempt to retrieve from cache
-      const trans = comfyTranslations[ filteredMessage.toLowerCase() ] || undefined;
-	  if( trans && trans[ language ] ) {
-		  const resp = {
-			  [ language ] : {
-				text: [ trans[ language ] ],
-				lang: trans.lang,
-			  }
-		  };
-		  return sendTranslationFromResponse( language, filteredMessage, channel, userstate, resp, app );
-	  }
-    } else {
-      // Check memTranslations for long-message caches
-      const resp = memTranslations.find( translation => translation.message == filteredMessage )
-      if( resp && resp[ language ] )
-        return sendTranslationFromResponse( language, filteredMessage, channel, userstate, resp, app )
+    // Fetch the channel-specific configuration
+    const channelConfig = channels[channel];
+    if (!channelConfig) {
+      console.log(`[ERROR] Channel configuration not found for ${channel}`);
+      return;
     }
 
-    
-  }
-  catch( err ) {
-	  return;
+    // Extract the target language (lang) and supported translated languages
+    const targetLanguage = channelConfig.lang?.toLowerCase().trim();
+    const supportedLanguages = channelConfig.translatedlanguages || [];
+
+    if (!targetLanguage) {
+      console.log(`[ERROR] Target language (.lang) not set for channel ${channel}`);
+      return;
+    }
+
+    // Ensure supportedLanguages is an array and normalize the codes to lowercase
+    const normalizedSupportedLanguages = supportedLanguages.map(lang => lang.toLowerCase().trim());
+
+    // Use Google Cloud Translate's detect method for language detection with confidence score
+    const [detection] = await translate.detect(message); // You need to ensure `translate` is the Google Translate client instance
+    const detectedLanguage = detection.language.toLowerCase().trim();
+    const confidence = detection.confidence;
+
+    console.log(`[INFO] Detected language: ${detectedLanguage} with confidence: ${confidence}`);
+    console.log(`[INFO] Supported languages: ${normalizedSupportedLanguages.join(', ')}`);
+    console.log(`[INFO] Target language (.lang): ${targetLanguage}`);
+
+    // Log if confidence is low (below threshold like 0.5)
+    if (confidence < 0.5) {
+      console.log(`[WARN] Low confidence detected for language detection: ${confidence}`);
+    }
+
+    // Check if the detected language is in the supported translated languages
+    if (!normalizedSupportedLanguages.includes(detectedLanguage)) {
+      console.log(`[INFO] Detected language '${detectedLanguage}' is not in the supported languages list. Skipping translation.`);
+      return;
+    }
+
+    // Avoid translating to the same language as the detected one
+    if (detectedLanguage === targetLanguage) {
+      console.log(`[INFO] Detected language '${detectedLanguage}' matches the target language '${targetLanguage}'. No translation needed.`);
+      return;
+    }
+
+    // Proceed with translation
+    console.log(`[INFO] Translating message from '${detectedLanguage}' to '${targetLanguage}'`);
+
+    // Perform translation using Google API
+    let [translatedText] = await translate.translate(message, targetLanguage);
+    translatedText = Array.isArray(translatedText) ? translatedText[0] : translatedText;
+
+    console.log(`[INFO] Translated message: ${message} => ${translatedText}`);
+
+    // Send the translated message back to the channel
+    if (translatedText) {
+      const response = {
+        text: [translatedText],
+        lang: detectedLanguage,
+      };
+
+      sendTranslationFromResponse(targetLanguage, message, channel, userstate, response, app);
+
+      // Cache translation
+      const translationCache = await ComfyDB.Get(message, "translations") || {};
+      translationCache[detectedLanguage] = response;
+      console.log(`[INFO] Caching translation: ${message} => ${translatedText}`);
+      await ComfyDB.Store(message, translationCache, "translations");
+    }
+  } catch (err) {
+    console.error(`[ERROR] Error in translateMessageWithGoogle: ${err.message}`);
   }
 }
 
-function sendTranslationFromResponse( language, filteredMessage, channel, userstate, resp, app, fromRequest = false ) {
-  const { client, channels } = app
-  const { uncensored, color, langshow } = channels[ channel ]
+
+
+
+
+
+
+
+
+function sendTranslationFromResponse(language, filteredMessage, channel, userstate, resp, app, fromRequest = false) {
+  const { client, channels } = app;
+  const { uncensored, color, langshow } = channels[channel];
+
+  // Determine text and language source based on `fromRequest`
   let text, langFrom;
 
-  if( fromRequest ) {
-    text = resp.text[ 0 ] || "";
-    langFrom = resp.lang;
+  if (fromRequest) {
+    text = resp.text?.[0] || ""; // Access the first translated text if available
+    langFrom = resp.lang || "unknown"; // Fallback to "unknown" if lang isn't provided
   } else {
-    text = resp[ language ].text[ 0 ] || "";
-    langFrom = resp[ language ].lang;
+    // Adjust for the resp structure; `language` may not be a key in this case
+    text = resp.text?.[0] || ""; // Directly access text
+    langFrom = resp.lang || "unknown"; // Directly access lang
   }
 
-  if( !langFrom || langFrom.startsWith( language ) ) return
+  // Debugging logs for better visibility
+  console.log(`[DEBUG] Detected source language: ${langFrom}`);
+  console.log(`[DEBUG] Translated text: ${text}`);
 
-  // No need to send duplicate in same language
-  if( text == filteredMessage ) {
+  // Skip sending if translation failed or text is unchanged
+  if (!text || text === filteredMessage) {
+    console.log(`[INFO] No translation needed or translation failed for message: ${filteredMessage}`);
     return;
   }
-  // Censoring
-  if( !uncensored ) {
-    text = naughtyToNice( text );
+
+  // Apply censorship if required
+  if (!uncensored) {
+    text = naughtyToNice(text);
   }
 
-  client.say( channel, `${ color ? "/me " : "" }${ langshow ? "(" + languages[ langFrom.split("-")[ 0 ] ] + ") " : "" }${ userstate[ "display-name" ] }: ${ text }` );
+  // Language display in Twitch chat
+  const sourceLanguage = languages[langFrom.split("-")[0]] || "unknown"; // Get readable name for langFrom
+  const displayName = userstate["display-name"] || "Unknown";
+
+  console.log(`[INFO] Sending translation: (${sourceLanguage}) ${displayName}: ${text}`);
+
+  // Send the message to Twitch chat
+  client.say(
+    channel,
+    `${color ? "/me " : ""}${langshow ? `(${sourceLanguage}) ` : ""}${displayName}: ${text}`
+  );
 }
 
-module.exports = { translateMessage, translateMessageWithAzure, translateMessageComfyTranslations }
+
+module.exports = { translateMessageWithGoogle };

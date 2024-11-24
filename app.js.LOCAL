@@ -167,7 +167,7 @@ setInterval(checkTokenValidity, 60 * 60 * 1000); // Check every hour
         errorPrefix + "Message:  " + message,
         errorPrefix + "Error:  ", error
       );
-	}
+    }
   }
 
   const messageCache = new Map();

@@ -16,6 +16,9 @@ addDefaultFiles( '.env',
 		AZURE_KEY='[AZURE Key Here]',
 		ClIENT_ID='[Client ID can be found on twitch developer dashboard]',
 		OAUTH_2='[oauth key generated from /TMI with be in the format of oauth:xxxxxxxxx',
+		OPENAI_API_KEY='open API key used for CHATGPT functionality',
+        GOOGLE_API='API key generated in google cloud dashboard',
+        ProjectID='Project-ID from google cloud translate',
 		 
 		'A correct .env file will look similiar to the lines below.',
 		

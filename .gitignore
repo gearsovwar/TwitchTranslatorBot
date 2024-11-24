@@ -6,7 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 channels.db
 translations.db
-
+translate.json
 # Runtime data
 pids
 *.pid
