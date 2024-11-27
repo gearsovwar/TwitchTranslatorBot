@@ -1,5 +1,5 @@
 
-The bot detects and translates chat messages of other languages into the target language set by the streamer in real-time.
+The bot detects and translates chat messages of other languages into the target language set by the streamer in real-time. (changes implemented within last push new documentation will be released for new commands)
 
 
 ## Commands ##
