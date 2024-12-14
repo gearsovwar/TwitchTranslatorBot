@@ -1,3 +1,5 @@
+TODO document commands and streamline them so that they have ease of use.
+
 
 The bot detects and translates chat messages of other languages into the target language set by the streamer in real-time. (changes implemented within last push new documentation will be released for new commands)
 
@@ -18,6 +20,9 @@ The bot detects and translates chat messages of other languages into the target 
 * `!gptcooldown` - Sets the cooldown of users gpt commands. 
 * `!gptpersonas` - Displays a list of personalities that the bot can now have.
 * `!gptshow`     - Shows the language that is being translated.
+* `!gptaddlang`  - Adds a language that will be translated on that channel (YOU MUST USE LANGUAGE CODES IE !gptaddlang ru for russian.
+* `!gptremovelang` - Removes a languaage from being translated.
+* `!gptlistlang` - Lists languages that are currently being translated on the channel.
 ## Instructions ##
 
 1. Install NodeJS - [https://nodejs.org/en/](https://nodejs.org/en/)
@@ -48,4 +53,3 @@ OAUTH_2=oauth:oauthkey
 "Common Issues"
 1.) Cannot connect to MangoDB instance - You may need to change the index.js in conmfydb module from Localhost to 127.0.0.1.
 2.) Issue with reading map. -Verify that you have correctly entered in all .env variables You may have to enable logging commands to see what the API is returning.
-3.) currently this bot misinterprets some words for other words in other languages due to it translating too many languages. This will not be fixed in this version of the bot and will be fixed when it is remade. 
